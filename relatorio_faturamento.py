@@ -5,19 +5,16 @@ from datetime import datetime
 import requests
 
 # --- URLs E CONSTANTES DO GITHUB ---
-
-# -- ALTERADO/NOVO --: Nomes dos arquivos ajustados conforme solicitado.
 ARQUIVO_DADOS_HISTORICO = "DADOSHISTO.XLSX"
 ARQUIVO_DADOS_ATUAL = "DADOSATUAL.XLSX"
 
-URL_DADOS_HISTORICO = f"https://raw.githubusercontent.com/rodneirac/BI_Faturamento/main/{ARQUIVO_DADOS_HISTORICO}"
-URL_DADOS_ATUAL = f"https://raw.githubusercontent.com/rodneirac/BI_Faturamento/main/{ARQUIVO_DADOS_ATUAL}"
-
-LOGO_URL = "https://raw.githubusercontent.com/rodneirac/BI_Faturamento/main/logo.png"
-
 # Informações do repositório para a API
 OWNER = "rodneirac"
-REPO = "BI_Faturamento"
+REPO = "Bifaturamento" # <-- CORRIGIDO
+
+URL_DADOS_HISTORICO = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/{ARQUIVO_DADOS_HISTORICO}"
+URL_DADOS_ATUAL = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/{ARQUIVO_DADOS_ATUAL}"
+LOGO_URL = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/logo.png"
 
 
 # --- FUNÇÕES AUXILIARES ---
@@ -59,7 +56,8 @@ def load_data(url):
         df = pd.read_excel(url)
         return df
     except Exception as e:
-        print(f"Aviso: Não foi possível carregar o arquivo da URL {url}. Erro: {e}")
+        # Mostra o erro diretamente na tela para facilitar a depuração
+        st.error(f"Erro ao carregar a planilha da URL {url}: {e}")
         return None
 
 # --- CONFIGURAÇÃO DA PÁGINA E TÍTULO ---
@@ -110,7 +108,6 @@ if dataframes_para_unir:
     # --- KPIs ---
     st.markdown("### Indicadores Gerais")
     
-    # -- ALTERADO/NOVO --: Formatação dos KPIs com separador de milhar
     kpi_notas = df_filtrado["Nº documento de Faturamento"].nunique()
     kpi_contratos = df_filtrado["Contrato"].nunique()
     kpi_clientes = df_filtrado["Cliente"].nunique()
@@ -122,10 +119,8 @@ if dataframes_para_unir:
     col3.metric("Clientes", f"{kpi_clientes:,}".replace(",", "."))
     col4.metric("Obras", f"{kpi_obras:,}".replace(",", "."))
 
-    # -- ALTERADO/NOVO --: Novos KPIs de Média
     st.markdown("### Indicadores de Média")
 
-    # Calcula as médias com segurança para evitar divisão por zero
     avg_nf_por_cliente = (kpi_notas / kpi_clientes) if kpi_clientes > 0 else 0
     avg_nf_por_contrato = (kpi_notas / kpi_contratos) if kpi_contratos > 0 else 0
     avg_clientes_por_obra = (kpi_clientes / kpi_obras) if kpi_obras > 0 else 0
@@ -160,4 +155,5 @@ if dataframes_para_unir:
         st.plotly_chart(fig, use_container_width=True)
 
 else:
-    st.error("Não foi possível carregar nenhuma das planilhas de dados. Verifique os nomes e links no GitHub.")
+    # Mensagem exibida se nenhuma das planilhas for encontrada/carregada
+    st.info("Aguardando o carregamento da(s) planilha(s) do GitHub para exibir o relatório.")
