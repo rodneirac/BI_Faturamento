@@ -8,9 +8,8 @@ import requests
 ARQUIVO_DADOS_HISTORICO = "DADOSHISTO.XLSX"
 ARQUIVO_DADOS_ATUAL = "DADOSATUAL.XLSX"
 
-# Informações do repositório para a API
 OWNER = "rodneirac"
-REPO = "Bifaturamento" # <-- CORRIGIDO
+REPO = "Bifaturamento"
 
 URL_DADOS_HISTORICO = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/{ARQUIVO_DADOS_HISTORICO}"
 URL_DADOS_ATUAL = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/{ARQUIVO_DADOS_ATUAL}"
@@ -21,10 +20,8 @@ LOGO_URL = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/logo.png"
 
 @st.cache_data(ttl=3600)
 def get_latest_update_info(owner, repo, file_paths):
-    """Verifica a data do último commit para uma lista de arquivos e retorna a mais recente."""
     latest_date = None
     latest_file = None
-
     for path in file_paths:
         api_url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&page=1&per_page=1"
         try:
@@ -34,29 +31,26 @@ def get_latest_update_info(owner, repo, file_paths):
             if commit_data:
                 date_str = commit_data[0]['commit']['committer']['date']
                 current_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-
                 if latest_date is None or current_date > latest_date:
                     latest_date = current_date
                     latest_file = path
         except requests.exceptions.RequestException as e:
             print(f"Erro ao acessar a API do GitHub para o arquivo {path}: {e}")
             continue
-            
     if latest_date:
         local_date_str = latest_date.astimezone().strftime('%d/%m/%Y às %H:%M')
         return f"**{local_date_str}** (arquivo: *{latest_file}*)"
-    
     return "Não foi possível obter a data de atualização."
 
-
+# -- ALTERADO/NOVO --: Adicionado o 'engine' para forçar a leitura de .xlsx
 @st.cache_data
 def load_data(url):
-    """Carrega os dados da planilha a partir de uma URL, tratando erros."""
+    """Carrega os dados da planilha a partir de uma URL, especificando o motor de leitura."""
     try:
-        df = pd.read_excel(url)
+        # Força o uso do motor 'openpyxl', ideal para arquivos .xlsx
+        df = pd.read_excel(url, engine='openpyxl')
         return df
     except Exception as e:
-        # Mostra o erro diretamente na tela para facilitar a depuração
         st.error(f"Erro ao carregar a planilha da URL {url}: {e}")
         return None
 
@@ -67,10 +61,8 @@ except Exception:
     st.error("Não foi possível carregar a logo. Verifique a LOGO_URL.")
 
 st.title("Dashboard Kit Faturamento")
-
 latest_update_info = get_latest_update_info(OWNER, REPO, [ARQUIVO_DADOS_HISTORICO, ARQUIVO_DADOS_ATUAL])
 st.caption(f"Dados atualizados em: {latest_update_info}")
-
 
 # --- CARREGAMENTO PRINCIPAL E EXECUÇÃO DO DASHBOARD ---
 df_historico = load_data(URL_DADOS_HISTORICO)
@@ -85,7 +77,7 @@ if df_atual is not None:
 if dataframes_para_unir:
     df = pd.concat(dataframes_para_unir, ignore_index=True)
     df.drop_duplicates(inplace=True)
-
+    # ... (o resto do código continua igual) ...
     # --- PROCESSAMENTO DOS DADOS ---
     df["Data do documento"] = pd.to_datetime(df["Data do documento"])
     df["Mês"] = df["Data do documento"].dt.to_period("M").astype(str)
@@ -132,7 +124,6 @@ if dataframes_para_unir:
     
     st.markdown("---")
 
-
     # --- GRÁFICOS ---
     agrupado = df_filtrado.groupby("Mês").agg({
         "Nº documento de Faturamento": pd.Series.nunique,
@@ -155,5 +146,4 @@ if dataframes_para_unir:
         st.plotly_chart(fig, use_container_width=True)
 
 else:
-    # Mensagem exibida se nenhuma das planilhas for encontrada/carregada
     st.info("Aguardando o carregamento da(s) planilha(s) do GitHub para exibir o relatório.")
