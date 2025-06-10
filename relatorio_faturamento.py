@@ -6,7 +6,7 @@ import plotly.express as px
 from datetime import datetime
 
 # Logo no topo
-st.image("https://github.com/rodneirac/BI_Faturamento/blob/main/logo.png", width=200)
+st.image("https://github.com/rodneirac/BI_Faturamento/main/logo.png", width=200)
 
 # Título
 st.title("Dashbord Kit Faturamento")
