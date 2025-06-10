@@ -7,13 +7,13 @@ import requests
 from io import BytesIO
 
 # Logo
-st.image("https://raw.githubusercontent.com/rodneic/relatorio_faturamento/main/logo.png", width=300)
+st.image("https://github.com/rodneirac/BI_Faturamento/blob/main/logo.png", width=300)
 
 # Título
 st.title("Dashboard Kit Faturamento")
 
 # Leitura do Excel via requests (mais confiável para GitHub)
-url_dados = "https://raw.githubusercontent.com/rodneic/relatorio_faturamento/main/DADOSZSD065.XLSX"
+url_dados = "https://github.com/rodneirac/BI_Faturamento/blob/main/DADOSZSD065.XLSX"
 response = requests.get(url_dados)
 df = pd.read_excel(BytesIO(response.content), engine="openpyxl")
 
