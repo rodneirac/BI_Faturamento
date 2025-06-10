@@ -3,16 +3,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
+import requests
+from io import BytesIO
 
-# Logo no topo (caminho atualizado)
+# Logo
 st.image("https://raw.githubusercontent.com/rodneic/relatorio_faturamento/main/logo.png", width=300)
 
 # Título
 st.title("Dashboard Kit Faturamento")
 
-# Leitura dos dados diretamente do GitHub
+# Leitura do Excel via requests (mais confiável para GitHub)
 url_dados = "https://raw.githubusercontent.com/rodneic/relatorio_faturamento/main/DADOSZSD065.XLSX"
-df = pd.read_excel(url_dados, engine="openpyxl")
+response = requests.get(url_dados)
+df = pd.read_excel(BytesIO(response.content), engine="openpyxl")
 
 # Conversão da data e extração do mês
 df['Data do documento'] = pd.to_datetime(df['Data do documento'])
