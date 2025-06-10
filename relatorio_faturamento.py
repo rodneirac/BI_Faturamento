@@ -9,7 +9,7 @@ from datetime import datetime
 st.image("https://github.com/rodneirac/BI_Faturamento/blob/main/logo.png", width=200)
 
 # Título
-st.title("ᴄᴏʏᴍᴇ Relatório de Faturamento por Divisão e Mês")
+st.title("Dashbord Kit Faturamento")
 
 # Leitura dos dados
 uploaded_file = st.file_uploader("Envie a planilha DADOSZSD065.XLSX", type=["xlsx"])
