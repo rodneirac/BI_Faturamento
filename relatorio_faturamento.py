@@ -44,16 +44,25 @@ if df is not None:
     df["Mês"] = df["Data do documento"].dt.to_period("M").astype(str)
 
     st.sidebar.header("Filtros")
-    # --- FILTROS NA BARRA LATERAL ---
+    
+    # --- FILTROS NA BARRA LATERAL (LÓGICA ALTERADA) ---
     divisoes = sorted(df["Divisão"].dropna().unique())
     meses = sorted(df["Mês"].dropna().unique())
 
-    # Seletores com valores padrão para carregar tudo de início
-    divisoes_selecionadas = st.sidebar.multiselect("Filtrar por Divisão", divisoes, default=divisoes)
-    meses_selecionados = st.sidebar.multiselect("Filtrar por Mês", meses, default=meses)
+    # Filtros iniciam em branco (sem default)
+    divisoes_selecionadas = st.sidebar.multiselect("Filtrar por Divisão", divisoes)
+    meses_selecionados = st.sidebar.multiselect("Filtrar por Mês", meses)
 
-    # Filtrando o dataframe com base nas seleções
-    df_filtrado = df[(df["Divisão"].isin(divisoes_selecionadas)) & (df["Mês"].isin(meses_selecionados))]
+    # Inicia com o dataframe completo
+    df_filtrado = df
+
+    # Aplica o filtro de divisão apenas se alguma opção for selecionada
+    if divisoes_selecionadas:
+        df_filtrado = df_filtrado[df_filtrado["Divisão"].isin(divisoes_selecionadas)]
+
+    # Aplica o filtro de mês apenas se alguma opção for selecionada
+    if meses_selecionados:
+        df_filtrado = df_filtrado[df_filtrado["Mês"].isin(meses_selecionados)]
 
     # --- KPIs (Indicadores Chave de Performance) ---
     st.markdown("---")
