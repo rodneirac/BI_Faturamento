@@ -1,21 +1,33 @@
-# relatorio_faturamento.py
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
+# URL da planilha no GitHub (raw link)
+EXCEL_URL = "https://raw.githubusercontent.com/rodneirac/BI_Faturamento/main/DADOSZSD065.XLSX"
+
+# URL da logo no GitHub (raw link)
+LOGO_URL = "https://raw.githubusercontent.com/rodneirac/BI_Faturamento/main/logo.png"
+
 # Logo no topo
-st.image("https://github.com/rodneirac/BI_Faturamento/main/logo.png", width=200)
+st.image(LOGO_URL, width=200)
 
 # Título
 st.title("Dashbord Kit Faturamento")
 
-# Leitura dos dados
-uploaded_file = st.file_uploader("Envie a planilha DADOSZSD065.XLSX", type=["xlsx"])
-if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+# Leitura dos dados diretamente do GitHub
+@st.cache_data
+def load_data():
+    try:
+        df = pd.read_excel(EXCEL_URL)
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar a planilha do GitHub: {e}")
+        return None
 
+df = load_data()
+
+if df is not None:
     # Conversão da data e extração do mês
     df['Data do documento'] = pd.to_datetime(df['Data do documento'])
     df['Mês'] = df['Data do documento'].dt.to_period('M').astype(str)
@@ -57,4 +69,5 @@ if uploaded_file:
         st.plotly_chart(fig, use_container_width=True)
 
 else:
-    st.info("Aguardando envio da planilha para exibição do relatório.")
+    st.info("Aguardando o carregamento da planilha do GitHub.")
+
