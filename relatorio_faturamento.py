@@ -127,7 +127,6 @@ if dataframes_para_unir:
         "Código da Obra": "Obras"
     })
 
-    # -- ALTERADO/NOVO --: Seção de médias foi completamente refeita
     st.markdown("### Média Mensal de Emissões")
 
     if not agrupado.empty:
@@ -138,11 +137,12 @@ if dataframes_para_unir:
     else:
         avg_notas, avg_contratos, avg_clientes, avg_obras = 0, 0, 0, 0
     
+    # -- ALTERADO --: Adicionada formatação com separador de milhar para as médias
     col5, col6, col7, col8 = st.columns(4)
-    col5.metric("Média de NF / Mês", f"{avg_notas:.1f}".replace(".", ","))
-    col6.metric("Média de Contratos / Mês", f"{avg_contratos:.1f}".replace(".", ","))
-    col7.metric("Média de Clientes / Mês", f"{avg_clientes:.1f}".replace(".", ","))
-    col8.metric("Média de Obras / Mês", f"{avg_obras:.1f}".replace(".", ","))
+    col5.metric("Média de NF / Mês", f"{avg_notas:,.1f}".replace(",", "TEMP").replace(".", ",").replace("TEMP", "."))
+    col6.metric("Média de Contratos / Mês", f"{avg_contratos:,.1f}".replace(",", "TEMP").replace(".", ",").replace("TEMP", "."))
+    col7.metric("Média de Clientes / Mês", f"{avg_clientes:,.1f}".replace(",", "TEMP").replace(".", ",").replace("TEMP", "."))
+    col8.metric("Média de Obras / Mês", f"{avg_obras:,.1f}".replace(",", "TEMP").replace(".", ",").replace("TEMP", "."))
     
     st.markdown("---")
 
