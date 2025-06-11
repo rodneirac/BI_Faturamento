@@ -20,8 +20,10 @@ LOGO_URL = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main/logo.png"
 
 @st.cache_data(ttl=3600)
 def get_latest_update_info(owner, repo, file_paths):
+    """Verifica a data do último commit para uma lista de arquivos e retorna a mais recente."""
     latest_date = None
     latest_file = None
+
     for path in file_paths:
         api_url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&page=1&per_page=1"
         try:
@@ -37,17 +39,17 @@ def get_latest_update_info(owner, repo, file_paths):
         except requests.exceptions.RequestException as e:
             print(f"Erro ao acessar a API do GitHub para o arquivo {path}: {e}")
             continue
+            
     if latest_date:
         local_date_str = latest_date.astimezone().strftime('%d/%m/%Y às %H:%M')
         return f"**{local_date_str}** (arquivo: *{latest_file}*)"
+    
     return "Não foi possível obter a data de atualização."
 
-# -- ALTERADO/NOVO --: Adicionado o 'engine' para forçar a leitura de .xlsx
 @st.cache_data
 def load_data(url):
     """Carrega os dados da planilha a partir de uma URL, especificando o motor de leitura."""
     try:
-        # Força o uso do motor 'openpyxl', ideal para arquivos .xlsx
         df = pd.read_excel(url, engine='openpyxl')
         return df
     except Exception as e:
@@ -64,6 +66,7 @@ st.title("Dashboard Kit Faturamento")
 latest_update_info = get_latest_update_info(OWNER, REPO, [ARQUIVO_DADOS_HISTORICO, ARQUIVO_DADOS_ATUAL])
 st.caption(f"Dados atualizados em: {latest_update_info}")
 
+
 # --- CARREGAMENTO PRINCIPAL E EXECUÇÃO DO DASHBOARD ---
 df_historico = load_data(URL_DADOS_HISTORICO)
 df_atual = load_data(URL_DADOS_ATUAL)
@@ -77,7 +80,7 @@ if df_atual is not None:
 if dataframes_para_unir:
     df = pd.concat(dataframes_para_unir, ignore_index=True)
     df.drop_duplicates(inplace=True)
-    # ... (o resto do código continua igual) ...
+
     # --- PROCESSAMENTO DOS DADOS ---
     df["Data do documento"] = pd.to_datetime(df["Data do documento"])
     df["Mês"] = df["Data do documento"].dt.to_period("M").astype(str)
@@ -110,21 +113,8 @@ if dataframes_para_unir:
     col2.metric("Contratos", f"{kpi_contratos:,}".replace(",", "."))
     col3.metric("Clientes", f"{kpi_clientes:,}".replace(",", "."))
     col4.metric("Obras", f"{kpi_obras:,}".replace(",", "."))
-
-    st.markdown("### Indicadores de Média")
-
-    avg_nf_por_cliente = (kpi_notas / kpi_clientes) if kpi_clientes > 0 else 0
-    avg_nf_por_contrato = (kpi_notas / kpi_contratos) if kpi_contratos > 0 else 0
-    avg_clientes_por_obra = (kpi_clientes / kpi_obras) if kpi_obras > 0 else 0
     
-    col5, col6, col7 = st.columns(3)
-    col5.metric("NF por Cliente", f"{avg_nf_por_cliente:.2f}".replace(".", ","))
-    col6.metric("NF por Contrato", f"{avg_nf_por_contrato:.2f}".replace(".", ","))
-    col7.metric("Clientes por Obra", f"{avg_clientes_por_obra:.2f}".replace(".", ","))
-    
-    st.markdown("---")
-
-    # --- GRÁFICOS ---
+    # --- GRÁFICOS E DADOS AGRUPADOS PARA MÉDIAS ---
     agrupado = df_filtrado.groupby("Mês").agg({
         "Nº documento de Faturamento": pd.Series.nunique,
         "Contrato": pd.Series.nunique,
@@ -136,6 +126,25 @@ if dataframes_para_unir:
         "Cliente": "Clientes",
         "Código da Obra": "Obras"
     })
+
+    # -- ALTERADO/NOVO --: Seção de médias foi completamente refeita
+    st.markdown("### Média Mensal de Emissões")
+
+    if not agrupado.empty:
+        avg_notas = agrupado["Notas Fiscais"].mean()
+        avg_contratos = agrupado["Contratos"].mean()
+        avg_clientes = agrupado["Clientes"].mean()
+        avg_obras = agrupado["Obras"].mean()
+    else:
+        avg_notas, avg_contratos, avg_clientes, avg_obras = 0, 0, 0, 0
+    
+    col5, col6, col7, col8 = st.columns(4)
+    col5.metric("Média de NF / Mês", f"{avg_notas:.1f}".replace(".", ","))
+    col6.metric("Média de Contratos / Mês", f"{avg_contratos:.1f}".replace(".", ","))
+    col7.metric("Média de Clientes / Mês", f"{avg_clientes:.1f}".replace(".", ","))
+    col8.metric("Média de Obras / Mês", f"{avg_obras:.1f}".replace(".", ","))
+    
+    st.markdown("---")
 
     st.subheader("Evolução Mensal")
 
