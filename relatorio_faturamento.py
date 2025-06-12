@@ -4,6 +4,9 @@ import plotly.express as px
 from datetime import datetime
 import requests
 
+# --- CONFIGURAÇÕES INICIAIS DA PÁGINA E LOCALIDADE
+st.set_page_config(layout="wide")
+
 # --- URLs E CONSTANTES DO GITHUB ---
 ARQUIVO_DADOS_HISTORICO = "DADOSHISTO.XLSX"
 ARQUIVO_DADOS_ATUAL = "DADOSATUAL.XLSX"
